@@ -1,16 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Apex Hunter: 3D Ocean Shark Simulation</title>
-  <meta name="description" content="Control an apex predator shark in a living 3D ocean ecosystem. Small fish sense your distance and panic-scatter as you close in. Built with Three.js.">
+  <meta name="description"
+    content="Control an apex predator shark in a living 3D ocean ecosystem. Small fish sense your distance and panic-scatter as you close in. Built with Three.js.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
-  <script type="module" crossorigin src="/assets/index-DnqljYKh.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-C0-m8Vix.css">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet">
+
+  <!-- Importmap enables native browser ES modules on static servers (VS Code Live Server port 5500 & GitHub Pages) -->
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.186.1/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.186.1/examples/jsm/"
+      }
+    }
+  </script>
+  <script type="module" crossorigin src="./assets/index-BArnWoMs.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-C0-m8Vix.css">
 </head>
+
 <body>
   <div id="canvas-container"></div>
 
@@ -38,16 +54,19 @@
       <div class="hud-controls">
         <button id="btn-audio" class="hud-btn" title="Toggle Ocean Audio (M)">
           <svg id="icon-sound-on" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-            <path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77zm-2.5-1.23L6.5 6.5H2v11h4.5l5 4.5V2zm-3.5 8H4v-4h2.8l2.2-2v10l-2.2-2z"/>
+            <path
+              d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77zm-2.5-1.23L6.5 6.5H2v11h4.5l5 4.5V2zm-3.5 8H4v-4h2.8l2.2-2v10l-2.2-2z" />
           </svg>
           <svg id="icon-sound-off" class="hidden" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-            <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27l4.78 4.78H2v6h4l5 5V13.8l5.22 5.22c-.67.43-1.4.79-2.22 1.04v2.06c1.38-.36 2.63-.98 3.69-1.78L19.73 22 21 20.73 4.27 3zM11 4.77l-3.3 3.3 3.3 3.3V4.77z"/>
+            <path
+              d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27l4.78 4.78H2v6h4l5 5V13.8l5.22 5.22c-.67.43-1.4.79-2.22 1.04v2.06c1.38-.36 2.63-.98 3.69-1.78L19.73 22 21 20.73 4.27 3zM11 4.77l-3.3 3.3 3.3 3.3V4.77z" />
           </svg>
           <span id="sound-label">SOUND: OFF</span>
         </button>
         <button id="btn-cam" class="hud-btn" title="Cycle Camera (C)">
           <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-            <path d="M12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0 8c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm9-12h-3.17L16 3H8L6.17 5H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 14H3V7h3.83l1.83-2h6.68l1.83 2H21v12z"/>
+            <path
+              d="M12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0 8c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm9-12h-3.17L16 3H8L6.17 5H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 14H3V7h3.83l1.83-2h6.68l1.83 2H21v12z" />
           </svg>
           <span id="cam-label">CAM: CHASE</span>
         </button>
@@ -168,11 +187,12 @@
       <button id="btn-start" class="btn-primary">
         <span>ENTER THE OCEAN</span>
         <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-          <path d="M5 3l14 9-14 9V3z"/>
+          <path d="M5 3l14 9-14 9V3z" />
         </svg>
       </button>
     </div>
   </div>
 
 </body>
+
 </html>
