@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apex Hunter: 3D Ocean Shark Simulation</title>
+  <meta name="description"
+    content="Control an apex predator shark in a living 3D ocean ecosystem. Small fish sense your distance and panic-scatter as you close in. Built with Three.js.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap"
+    rel="stylesheet">
+  <script type="module" crossorigin src="/fish-game/assets/index-BArnWoMs.js"></script>
+  <link rel="stylesheet" crossorigin href="/fish-game/assets/index-C0-m8Vix.css">
+</head>
+
+<body>
+  <div id="canvas-container"></div>
+
+  <!-- HUD Interface -->
+  <div id="hud" class="hud-layer">
+    <!-- Top Bar -->
+    <header class="hud-header">
+      <div class="hud-brand">
+        <span class="pulse-dot"></span>
+        <h1 class="hud-title">APEX PREDATOR</h1>
+        <span class="hud-tag">OCEAN ECOSYSTEM</span>
+      </div>
+
+      <div class="hud-stats">
+        <div class="stat-card">
+          <span class="stat-label">FISH CONSUMED</span>
+          <span id="score-counter" class="stat-value">0</span>
+        </div>
+        <div class="stat-card combo-card" id="combo-card">
+          <span class="stat-label">FEEDING FRENZY</span>
+          <span id="combo-multiplier" class="stat-value">1.0x</span>
+        </div>
+      </div>
+
+      <div class="hud-controls">
+        <button id="btn-audio" class="hud-btn" title="Toggle Ocean Audio (M)">
+          <svg id="icon-sound-on" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path
+              d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77zm-2.5-1.23L6.5 6.5H2v11h4.5l5 4.5V2zm-3.5 8H4v-4h2.8l2.2-2v10l-2.2-2z" />
+          </svg>
+          <svg id="icon-sound-off" class="hidden" viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path
+              d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27l4.78 4.78H2v6h4l5 5V13.8l5.22 5.22c-.67.43-1.4.79-2.22 1.04v2.06c1.38-.36 2.63-.98 3.69-1.78L19.73 22 21 20.73 4.27 3zM11 4.77l-3.3 3.3 3.3 3.3V4.77z" />
+          </svg>
+          <span id="sound-label">SOUND: OFF</span>
+        </button>
+        <button id="btn-cam" class="hud-btn" title="Cycle Camera (C)">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path
+              d="M12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zm0 8c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm9-12h-3.17L16 3H8L6.17 5H3a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h18a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 14H3V7h3.83l1.83-2h6.68l1.83 2H21v12z" />
+          </svg>
+          <span id="cam-label">CAM: CHASE</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Crosshair / Reticle -->
+    <div id="reticle" class="reticle">
+      <div class="reticle-ring"></div>
+      <div class="reticle-dot"></div>
+      <div class="reticle-lock hidden" id="reticle-lock">TARGET IN RANGE</div>
+    </div>
+
+    <!-- Center Feed Notification -->
+    <div id="frenzy-banner" class="frenzy-banner hidden">
+      <div class="frenzy-text">FEEDING SPREE!</div>
+      <div class="frenzy-sub">PREDATOR SPEED INCREASED</div>
+    </div>
+
+    <!-- Bottom Dashboard -->
+    <footer class="hud-bottom">
+      <!-- Sonar Radar -->
+      <div class="sonar-panel">
+        <div class="panel-header">
+          <span class="sonar-indicator"></span>
+          <span>SONAR RADAR (360°)</span>
+        </div>
+        <div class="sonar-canvas-wrap">
+          <canvas id="sonar-canvas" width="160" height="160"></canvas>
+          <div class="sonar-sweep"></div>
+        </div>
+        <div class="sonar-legend">
+          <span class="legend-calm"><i class="dot"></i> Calm</span>
+          <span class="legend-panic"><i class="dot"></i> Panicking!</span>
+        </div>
+      </div>
+
+      <!-- Distance Sensing & Panic telemetry -->
+      <div class="panic-panel">
+        <div class="panel-header">
+          <span>SCHOOL PANIC SENSOR</span>
+          <span id="panic-pct">0%</span>
+        </div>
+        <div class="panic-bar-track">
+          <div id="panic-bar" class="panic-bar-fill"></div>
+        </div>
+        <div class="panic-status" id="panic-status">
+          Closest Fish: <span id="closest-fish-dist">35.0m</span> • Status: <span id="school-alert">CALM</span>
+        </div>
+        <p class="panic-explainer">
+          ⚡ Fish sense your distance in real-time. Speed scales exponentially as you get closer!
+        </p>
+      </div>
+
+      <!-- Predator Gauges -->
+      <div class="gauges-panel">
+        <!-- Speedometer -->
+        <div class="gauge-box">
+          <div class="gauge-label">
+            <span>VELOCITY</span>
+            <span id="speed-val">12 kn</span>
+          </div>
+          <div class="meter-bar">
+            <div id="speed-bar" class="meter-fill speed-fill"></div>
+          </div>
+        </div>
+
+        <!-- Stamina / Burst Gauge -->
+        <div class="gauge-box">
+          <div class="gauge-label">
+            <span>BOOST STAMINA [SHIFT / SPACE]</span>
+            <span id="stamina-val">100%</span>
+          </div>
+          <div class="meter-bar">
+            <div id="stamina-bar" class="meter-fill stamina-fill"></div>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Instructions Overlay / Quick Help -->
+    <div id="help-badge" class="help-badge">
+      <div class="key-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>Mouse</kbd> Steer & Dive</div>
+      <div class="key-hint"><kbd>Shift</kbd> / <kbd>Space</kbd> Sprint Burst</div>
+      <div class="key-hint"><kbd>Click</kbd> Chomp Bite</div>
+      <div class="key-hint"><kbd>C</kbd> Camera Mode</div>
+      <div class="key-hint"><kbd>M</kbd> Sound Toggle</div>
+    </div>
+  </div>
+
+  <!-- Start / Unmute Splash Modal for Audio Context -->
+  <div id="intro-modal" class="intro-modal">
+    <div class="modal-card">
+      <div class="modal-badge">3D PREDATOR SIMULATION</div>
+      <h2>THE APEX HUNTER</h2>
+      <p class="modal-desc">
+        Take control of a Great White Shark in an active living ocean.
+        The school of fish continuously calculates your distance—the closer you swim,
+        the faster and more frantically they dart away!
+      </p>
+      <div class="mechanics-grid">
+        <div class="mechanic-card">
+          <div class="icon">🦈</div>
+          <h4>Shark Physics</h4>
+          <p>Realistic 3D carangiform swimming with articulating spine, steering roll, and burst acceleration.</p>
+        </div>
+        <div class="mechanic-card">
+          <div class="icon">🐟</div>
+          <h4>Evasion AI</h4>
+          <p>Flocking boids with inverse-distance flee curves, dynamic tail flutter, and panic scatter.</p>
+        </div>
+        <div class="mechanic-card">
+          <div class="icon">🌊</div>
+          <h4>Living Ocean</h4>
+          <p>Animated underwater sunbeams, caustic seabed patterns, swaying kelp, and 3D hydrophone soundscape.</p>
+        </div>
+      </div>
+      <button id="btn-start" class="btn-primary">
+        <span>ENTER THE OCEAN</span>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+          <path d="M5 3l14 9-14 9V3z" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</body>
+
+</html>
